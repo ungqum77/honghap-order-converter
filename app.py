@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 from io import BytesIO
 
-st.title("홍합 발주서 자동 변환기 📦🧾")
+st.title("홍합 발주서 자동 변환기 VER 3.0📦🧾")
 
 uploaded_file = st.file_uploader("주문내역 엑셀 파일을 업로드하세요 (.xlsx)", type=["xlsx"])
 
