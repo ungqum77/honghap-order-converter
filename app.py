@@ -4,9 +4,8 @@ import pandas as pd
 from datetime import datetime
 from io import BytesIO
 
-st.title("홍합 발주서 자동 변환기 📦🧾")
+st.title("홍합 발주서 자동 변환기 ver2.0 📦🧾")
 
-# 파일 업로드
 uploaded_file = st.file_uploader("주문내역 엑셀 파일을 업로드하세요 (.xlsx)", type=["xlsx"])
 
 if uploaded_file is not None:
@@ -16,17 +15,14 @@ if uploaded_file is not None:
         st.error(f"❗ 엑셀 파일을 읽는 중 오류가 발생했습니다: {e}")
         st.stop()
 
-    # 필수 열 체크
-    required_columns = ["수취인명", "수취인연락처1", "상세배송지", "상품주문번호", "판매자 내부코드1", "배송메세지"]
+    required_columns = ["수취인명", "수취인연락처1", "상세배송지", "상품주문번호", "판매자 내부코드1", "배송메세지", "옵션관리코드"]
     if not all(col in df.columns for col in required_columns):
         st.error("❗ 필수 열이 누락되었습니다. 엑셀 파일을 확인해 주세요.")
         st.write("업로드된 열 목록:", df.columns.tolist())
         st.stop()
 
-    # 날짜
     today_str = datetime.today().strftime('%Y-%m-%d')
 
-    # 24개 열 생성
     columns_24 = [
         "예약구분", "집하예정일", "보내는분 성명", "보내는분전화번호", "보내는분기타연락처",
         "보내는분우편번호", "보내는분주소(전체,분할)", "받는분성명", "받는분전화번호", "받는분기타연락처",
@@ -35,9 +31,9 @@ if uploaded_file is not None:
     ]
     output_df = pd.DataFrame(index=range(len(df)), columns=columns_24)
 
-    # 고정값 및 매핑
     output_df["보내는분 성명"] = "창원진동농협"
     output_df["보내는분전화번호"] = "055-271-2021"
+    output_df["보내는분주소(전체,분할)"] = "경남 창원시 마산합포구 삼진의거대로 654"
     output_df["받는분성명"] = df["수취인명"]
     output_df["받는분전화번호"] = df["수취인연락처1"]
     output_df["받는분기타연락처"] = df["수취인연락처1"]
@@ -47,16 +43,15 @@ if uploaded_file is not None:
     output_df["박스수량"] = "1"
     output_df["박스타입"] = "소"
 
-    # 품목명 변환
     def convert_item(code):
         if code == "HONG_HAP_05K":
             return "홍합 5KG"
         elif code == "HONG_HAP_03K":
             return "홍합 3KG"
         return ""
-    output_df["품목명"] = df["판매자 내부코드1"].apply(convert_item)
 
-    # 엑셀 파일 생성
+    output_df["품목명"] = df["옵션관리코드"].apply(convert_item)
+
     towrite = BytesIO()
     output_df.to_excel(towrite, index=False, engine='openpyxl')
     towrite.seek(0)
